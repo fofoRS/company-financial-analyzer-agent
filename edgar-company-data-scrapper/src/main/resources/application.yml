@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: stock-data-fetch
+  main:
+    web-application-type: none
+  cloud:
+    function:
+      definition: "companySubmissionsCompanyTickerCreated;submissionCreated"
+    stream:
+      output-bindings: companyTickerCreated;companySubmissionCreated
+      bindings:
+        companyTickerCreated-out-0:
+          destination: edgar-company
+        companySubmissionCreated-out-0:
+          destination: submissions-report
+        companySubmissionsCompanyTickerCreated-in-0:
+          destination: edgar-company
+          group: company-submission.companyTickerCreated
+        submissionCreated-in-0:
+          destination: submissions-report
+          group: company-submission.submissionCreated
+      rabbit:
+        bindings:
+          companyTickerCreated-out-0:
+            producer:
+              routing-key: "company.ticker.created"
+          companySubmissionCreated-out-0:
+            producer:
+              routing-key: "submission.created"
+          companySubmissionsCompanyTickerCreated-in-0:
+            consumer:
+              binding-routing-key: "company.ticker.created"
+          submissionCreated-in-0:
+            consumer:
+              binding-routing-key: "submission.created"
+
+  ai:
+    openai:
+      chat:
+        options:
+          model: gpt-4
+      api-key: ${OPEN_API_KEY}
+
+edgar:
+  scrapper:
+    submissions:
+      reports:
+        - 10-K
+        - 10-Q
